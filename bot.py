@@ -1,11 +1,13 @@
-# Стартовый код Telegram-бота "WB Школа" с обучающим модулем
-
-from aiogram import Bot, Dispatcher, types, executor
+from aiogram import Bot, Dispatcher, types
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InputFile
+from aiogram.utils.executor import start_webhook
 import logging
 import os
 
-API_TOKEN = os.getenv('API_TOKEN')
+API_TOKEN = os.getenv("API_TOKEN")
+WEBHOOK_HOST = os.getenv("RENDER_EXTERNAL_URL")  # Render сам подставит URL
+WEBHOOK_PATH = "/webhook"
+WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
 
 logging.basicConfig(level=logging.INFO)
 
@@ -54,5 +56,19 @@ async def buy_access(message: types.Message):
 async def support_info(message: types.Message):
     await message.answer("Если возникли вопросы, пиши сюда: @your_support")
 
+async def on_startup(dp):
+    await bot.set_webhook(WEBHOOK_URL)
+
+async def on_shutdown(dp):
+    await bot.delete_webhook()
+
 if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True)
+    start_webhook(
+        dispatcher=dp,
+        webhook_path=WEBHOOK_PATH,
+        on_startup=on_startup,
+        on_shutdown=on_shutdown,
+        skip_updates=True,
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 5000)),
+    )
