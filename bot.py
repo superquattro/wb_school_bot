@@ -3,23 +3,22 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InputFile
 from aiogram.utils.executor import start_webhook
 import logging
 import os
+import aiohttp
 
 API_TOKEN = os.getenv("API_TOKEN")
-WEBHOOK_HOST = os.getenv("RENDER_EXTERNAL_URL")  # Render сам подставит URL
+RENDER_EXTERNAL_URL = os.getenv("RENDER_EXTERNAL_URL")
 WEBHOOK_PATH = "/webhook"
-WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
+WEBHOOK_URL = f"{RENDER_EXTERNAL_URL}{WEBHOOK_PATH}"
 
 logging.basicConfig(level=logging.INFO)
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 
-# Главное меню
 main_menu = ReplyKeyboardMarkup(resize_keyboard=True)
 main_menu.add(KeyboardButton("📘 Обучение"), KeyboardButton("💳 Оплатить доступ"))
 main_menu.add(KeyboardButton("🛠 Поддержка"))
 
-# Хранилище шагов пользователей
 user_steps = {}
 
 @dp.message_handler(commands=['start'])
@@ -57,7 +56,12 @@ async def support_info(message: types.Message):
     await message.answer("Если возникли вопросы, пиши сюда: @your_support")
 
 async def on_startup(dp):
-    await bot.set_webhook(WEBHOOK_URL)
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"https://api.telegram.org/bot{API_TOKEN}/getWebhookInfo") as resp:
+            data = await resp.json()
+            if not data['result']['url']:
+                await bot.set_webhook(WEBHOOK_URL)
+                print("Webhook установлен автоматически")
 
 async def on_shutdown(dp):
     await bot.delete_webhook()
