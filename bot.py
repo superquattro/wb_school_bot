@@ -4,6 +4,7 @@ from aiogram.utils.executor import start_webhook
 import logging
 import os
 import aiohttp
+import asyncio
 
 API_TOKEN = os.getenv("API_TOKEN")
 RENDER_EXTERNAL_URL = os.getenv("RENDER_EXTERNAL_URL")
@@ -55,13 +56,24 @@ async def buy_access(message: types.Message):
 async def support_info(message: types.Message):
     await message.answer("Если возникли вопросы, пиши сюда: @your_support")
 
+async def ping_self():
+    async with aiohttp.ClientSession() as session:
+        while True:
+            try:
+                async with session.get(RENDER_EXTERNAL_URL) as resp:
+                    logging.info(f"Ping status: {resp.status}")
+            except Exception as e:
+                logging.warning(f"Ping error: {e}")
+            await asyncio.sleep(300)
+
 async def on_startup(dp):
     async with aiohttp.ClientSession() as session:
         async with session.get(f"https://api.telegram.org/bot{API_TOKEN}/getWebhookInfo") as resp:
             data = await resp.json()
             if not data['result']['url']:
                 await bot.set_webhook(WEBHOOK_URL)
-                print("Webhook установлен автоматически")
+                logging.info("Webhook установлен автоматически")
+    asyncio.create_task(ping_self())
 
 async def on_shutdown(dp):
     await bot.delete_webhook()
