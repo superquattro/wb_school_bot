@@ -18,32 +18,66 @@ logging.basicConfig(level=logging.INFO, filename="bot.log", filemode="a",
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 
+# Меню начального этапа
 menu = ReplyKeyboardMarkup(resize_keyboard=True)
 menu.add(KeyboardButton("📘 О курсе — часть 1"))
-menu.add(KeyboardButton("🚀 Начать обучение"))
-menu.add(KeyboardButton("🎁 Пробный урок"))
-menu.add(KeyboardButton("💳 Купить часть 1 (3990 ₽)"))
-menu.add(KeyboardButton("💼 Купить весь курс (7990 ₽)"))
-menu.add(KeyboardButton("🛠 Поддержка"))
+menu.add(KeyboardButton("📘 О курсе — часть 2"))
+menu.add(KeyboardButton("📘 О курсе — часть 3"))
+
+# Меню с полным доступом
+full_menu = ReplyKeyboardMarkup(resize_keyboard=True)
+full_menu.add(KeyboardButton("📘 О курсе — часть 1"), KeyboardButton("📘 О курсе — часть 2"))
+full_menu.add(KeyboardButton("📘 О курсе — часть 3"))
+full_menu.add(KeyboardButton("🚀 Начать обучение"), KeyboardButton("🎁 Пробный урок"))
+full_menu.add(KeyboardButton("💳 Купить часть 1 (3990 ₽)"), KeyboardButton("💼 Купить весь курс (7990 ₽)"))
+full_menu.add(KeyboardButton("🛠 Поддержка"))
+
+# Прогресс пользователя
+user_progress = {}
 
 @dp.message_handler(commands=['start'])
 async def start(message: types.Message):
     await message.answer("Ты сейчас на самом крутом курсе, который научит тебя GPT-чату. Ты работаешь с искусственным интеллектом.", reply_markup=menu)
 
-@dp.message_handler(lambda msg: msg.text == "📘 О курсе — часть 1")
-async def show__о_курсе__часть_1(message: types.Message):
-    await message.answer("""🧠 Привет! Это не просто курс. Это твой вход в эпоху ChatGPT.
-❓Ты слышал про ChatGPT, но не до конца понимаешь, как его использовать?
-...
-“Я теперь понимаю, как использовать ИИ в жизни и в работе. И умею это делать.”""", parse_mode="Markdown")
 
-@dp.message_handler(lambda msg: msg.text == "🎁 Пробный урок")
-async def trial(message: types.Message):
-    await message.answer("🎁 Пробный урок скоро появится!")
+@dp.message_handler(lambda msg: msg.text == "📘 О курсе — часть 1")
+async def part_1(message: types.Message):
+    user_id = message.from_user.id
+    read = user_progress.get(user_id, set())
+    read.add("📘 О курсе — часть 1")
+    user_progress[user_id] = read
+    await message.answer("""Часть 1 текста от Екатерины...""", parse_mode='Markdown')
+    if read.issuperset({'📘 О курсе — часть 2', '📘 О курсе — часть 3', '📘 О курсе — часть 1'}):
+        await message.answer("✅ Все части прочитаны! Новые кнопки разблокированы.", reply_markup=full_menu)
+
+@dp.message_handler(lambda msg: msg.text == "📘 О курсе — часть 2")
+async def part_2(message: types.Message):
+    user_id = message.from_user.id
+    read = user_progress.get(user_id, set())
+    read.add("📘 О курсе — часть 2")
+    user_progress[user_id] = read
+    await message.answer("""Часть 2 текста от Екатерины...""", parse_mode='Markdown')
+    if read.issuperset({'📘 О курсе — часть 2', '📘 О курсе — часть 3', '📘 О курсе — часть 1'}):
+        await message.answer("✅ Все части прочитаны! Новые кнопки разблокированы.", reply_markup=full_menu)
+
+@dp.message_handler(lambda msg: msg.text == "📘 О курсе — часть 3")
+async def part_3(message: types.Message):
+    user_id = message.from_user.id
+    read = user_progress.get(user_id, set())
+    read.add("📘 О курсе — часть 3")
+    user_progress[user_id] = read
+    await message.answer("""Часть 3 текста от Екатерины...""", parse_mode='Markdown')
+    if read.issuperset({'📘 О курсе — часть 2', '📘 О курсе — часть 3', '📘 О курсе — часть 1'}):
+        await message.answer("✅ Все части прочитаны! Новые кнопки разблокированы.", reply_markup=full_menu)
+
 
 @dp.message_handler(lambda msg: msg.text == "🚀 Начать обучение")
 async def start_course(message: types.Message):
     await message.answer("🧠 Обучение скоро будет доступно!")
+
+@dp.message_handler(lambda msg: msg.text == "🎁 Пробный урок")
+async def trial(message: types.Message):
+    await message.answer("🎁 Пробный урок скоро появится!")
 
 @dp.message_handler(lambda msg: "Купить" in msg.text)
 async def buy(message: types.Message):
