@@ -19,21 +19,22 @@ bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 
 menu = ReplyKeyboardMarkup(resize_keyboard=True)
-menu.add(KeyboardButton("🚀 Начать обучение"), KeyboardButton("📘 О курсе"))
-menu.add(KeyboardButton("🎁 Пробный урок"), KeyboardButton("💳 Купить часть 1 (3990 ₽)"))
-menu.add(KeyboardButton("💼 Купить весь курс (7990 ₽)"), KeyboardButton("🛠 Поддержка"))
+menu.add(KeyboardButton("📘 О курсе — часть 1"))
+menu.add(KeyboardButton("🚀 Начать обучение"))
+menu.add(KeyboardButton("🎁 Пробный урок"))
+menu.add(KeyboardButton("💳 Купить часть 1 (3990 ₽)"))
+menu.add(KeyboardButton("💼 Купить весь курс (7990 ₽)"))
+menu.add(KeyboardButton("🛠 Поддержка"))
 
 @dp.message_handler(commands=['start'])
 async def start(message: types.Message):
     await message.answer("Ты сейчас на самом крутом курсе, который научит тебя GPT-чату. Ты работаешь с искусственным интеллектом.", reply_markup=menu)
 
-@dp.message_handler(lambda msg: msg.text == "📘 О курсе")
-async def course_info(message: types.Message):
+@dp.message_handler(lambda msg: msg.text == "📘 О курсе — часть 1")
+async def show__о_курсе__часть_1(message: types.Message):
     await message.answer("""🧠 Привет! Это не просто курс. Это твой вход в эпоху ChatGPT.
 ❓Ты слышал про ChatGPT, но не до конца понимаешь, как его использовать?
-... (весь текст как выше)
-❗️Ты можешь подождать ещё год.
-А можешь через 7 дней сказать:
+...
 “Я теперь понимаю, как использовать ИИ в жизни и в работе. И умею это делать.”""", parse_mode="Markdown")
 
 @dp.message_handler(lambda msg: msg.text == "🎁 Пробный урок")
