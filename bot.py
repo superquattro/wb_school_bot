@@ -5,13 +5,16 @@ import logging
 import os
 import aiohttp
 import asyncio
+from datetime import datetime
 
 API_TOKEN = os.getenv("API_TOKEN")
 RENDER_EXTERNAL_URL = os.getenv("RENDER_EXTERNAL_URL")
 WEBHOOK_PATH = "/webhook"
 WEBHOOK_URL = f"{RENDER_EXTERNAL_URL}{WEBHOOK_PATH}"
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, filename="bot.log", filemode="a",
+                    format="%(asctime)s - %(levelname)s - %(message)s")
+
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 
@@ -50,7 +53,8 @@ async def ping_self():
         while True:
             try:
                 async with session.get(RENDER_EXTERNAL_URL) as resp:
-                    logging.info(f"Ping status: {resp.status}")
+                    status = f"Ping status: {resp.status} at {datetime.now()}"
+                    logging.info(status)
             except Exception as e:
                 logging.warning(f"Ping error: {e}")
             await asyncio.sleep(300)
@@ -66,6 +70,7 @@ async def on_startup(dp):
 
 async def on_shutdown(dp):
     await bot.delete_webhook()
+    logging.info("Webhook отключён и бот завершил работу.")
 
 if __name__ == '__main__':
     start_webhook(
